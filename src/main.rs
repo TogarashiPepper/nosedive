@@ -73,6 +73,27 @@ impl EventHandler for Handler {
                 .unwrap();
 
             return;
+        } else if command.data.name == "leaderboard" {
+            use std::fmt::Write;
+
+            let rankings = db::rankings(dbpool).await.unwrap();
+            let mut buf = String::from("Leaderboard:\n");
+
+            for (idx, rank) in rankings.into_iter().enumerate() {
+                let _ = writeln!(buf, "{}. {}: {}", idx + 1, rank.0, rank.1);
+            }
+
+            command
+                .create_response(
+                    &ctx,
+                    CreateInteractionResponse::Message(
+                        CreateInteractionResponseMessage::new().content(buf),
+                    ),
+                )
+                .await
+                .unwrap();
+
+			return;
         } else if command.data.name != "createpoll" {
             return;
         }
@@ -96,7 +117,7 @@ impl EventHandler for Handler {
         db::create_if_user(dbpool, &user2.name).await.unwrap();
 
         let poll = CreatePoll::new()
-            .question("Which user is better? (poll ends in 1 minute)")
+            .question("Which user correct here? (poll ends in 1 minute)")
             .answers(vec![
                 CreatePollAnswer::new().text(user1.name),
                 CreatePollAnswer::new().text(user2.name),
@@ -112,6 +133,8 @@ impl EventHandler for Handler {
 
         let message = command.get_response(&ctx).await.unwrap();
         message.end_poll(&ctx).await.unwrap();
+
+        tokio::time::sleep(Duration::from_secs(4)).await;
 
         // Fetch it again after poll has ended, idk if this is necessary prob not
         let message = command.get_response(&ctx).await.unwrap();

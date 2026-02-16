@@ -34,6 +34,8 @@ pub async fn create_if_user(pool: &SqlitePool, username: &str) -> Result<(), sql
 }
 
 pub async fn get_elo(pool: &SqlitePool, username: &str) -> Result<i64, sqlx::Error> {
+    create_if_user(pool, username).await?;
+
     let elo: i64 = sqlx::query_scalar!("SELECT elo FROM users WHERE username = $1", username)
         .fetch_one(pool)
         .await?;
@@ -58,7 +60,7 @@ pub async fn finalize_match(
     winner: &str,
     loser: &str,
 ) -> Result<(i64, i64), sqlx::Error> {
-    const K: f64 = 15.0;
+    const K: f64 = 5.0;
 
     let r_w = get_elo(pool, winner).await.unwrap();
     let r_l = get_elo(pool, loser).await.unwrap();
@@ -73,4 +75,12 @@ pub async fn finalize_match(
     set_elo(pool, loser, r_l_new).await.unwrap();
 
     Ok((r_w_new - r_w, r_l_new - r_l))
+}
+
+pub async fn rankings(pool: &SqlitePool) -> Result<Vec<(String, i64)>, sqlx::Error> {
+    let res = sqlx::query!(r#"SELECT * FROM users WHERE elo != 0 ORDER BY elo DESC"#)
+        .fetch_all(pool)
+        .await?;
+
+    Ok(res.into_iter().map(|r| (r.username, r.elo)).collect())
 }
