@@ -35,7 +35,9 @@ pub async fn createpoll(dbpool: &SqlitePool, ctx: &Context, command: CommandInte
 	db::create_if_user(dbpool, &user2.name).await.unwrap();
 
 	let poll = CreatePoll::new()
-		.question("Which user correct here? (poll ends in 1 minute)")
+		.question(
+			"Which user is more morally or comedically superior here? (poll ends in 1 minute)",
+		)
 		.answers(vec![
 			CreatePollAnswer::new().text(user1.name),
 			CreatePollAnswer::new().text(user2.name),
