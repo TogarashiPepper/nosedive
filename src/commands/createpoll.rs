@@ -20,6 +20,21 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) {
 	let user = &command.user;
 	let target = get_usr(ctx, &command.data.options[0].value).await;
 
+	if user == &target {
+		command
+			.create_response(
+				&ctx,
+				CreateInteractionResponse::Message(
+					CreateInteractionResponseMessage::new()
+						.content("You can't challenge yourself."),
+				),
+			)
+			.await
+			.unwrap();
+
+		return;
+	}
+
 	db::create_if_user(dbpool, &user.name).await.unwrap();
 	db::create_if_user(dbpool, &target.name).await.unwrap();
 

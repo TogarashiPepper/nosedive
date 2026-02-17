@@ -74,7 +74,7 @@ impl EventHandler for Handler {
 		match command.data.name.as_str() {
             "getelo" => commands::get_elo(&ctx, command).await,
             "leaderboard" => commands::leaderboard(&ctx, command).await,
-            "createpoll" => {
+            "challenge" => {
 				if &command.channel.as_ref().unwrap().id != ctx.data.read().await.get::<Current>().unwrap() {
 					command
 						.create_response(
