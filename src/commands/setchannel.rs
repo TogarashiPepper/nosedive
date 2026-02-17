@@ -1,9 +1,7 @@
-use serenity::all::{
-	CommandInteraction, Context, CreateInteractionResponse,
-	CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, Context};
 
 use crate::Current;
+use crate::utils::make_resp;
 
 pub async fn set_channel(ctx: &Context, command: CommandInteraction) {
 	let channel = command.data.options[0]
@@ -19,12 +17,10 @@ pub async fn set_channel(ctx: &Context, command: CommandInteraction) {
 	command
 		.create_response(
 			&ctx,
-			CreateInteractionResponse::Message(
-				CreateInteractionResponseMessage::new().content(format!(
-					"Nosedive will now only listen for polls in {}",
-					channel
-				)),
-			),
+			make_resp(&format!(
+				"Nosedive will now only listen for polls in {}",
+				channel
+			)),
 		)
 		.await
 		.unwrap();

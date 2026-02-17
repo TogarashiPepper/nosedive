@@ -1,19 +1,20 @@
 use std::time::Duration;
 
+use anyhow::Result;
 use serenity::all::{
 	CommandDataOptionValue, CommandInteraction, Context, CreateInteractionResponse,
-	CreateInteractionResponseFollowup, CreateInteractionResponseMessage, CreatePoll,
-	CreatePollAnswer, User,
+	CreateInteractionResponseMessage, CreatePoll, CreatePollAnswer, User,
 };
 use tokio::time;
 
+use crate::utils::{make_followup, make_resp};
 use crate::{DatabasePool, db};
 
 async fn get_usr(ctx: &Context, option: &CommandDataOptionValue) -> User {
 	option.as_user_id().unwrap().to_user(ctx).await.unwrap()
 }
 
-pub async fn challenge(ctx: &Context, command: CommandInteraction) {
+pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()> {
 	let data = ctx.data.write().await;
 	let dbpool = data.get::<DatabasePool>().unwrap();
 
@@ -22,21 +23,14 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) {
 
 	if user == &target {
 		command
-			.create_response(
-				&ctx,
-				CreateInteractionResponse::Message(
-					CreateInteractionResponseMessage::new()
-						.content("You can't challenge yourself."),
-				),
-			)
-			.await
-			.unwrap();
+			.create_response(&ctx, make_resp("You can't challenge yourself"))
+			.await?;
 
-		return;
+		return Ok(());
 	}
 
-	db::create_if_user(dbpool, &user.name).await.unwrap();
-	db::create_if_user(dbpool, &target.name).await.unwrap();
+	db::create_if_user(dbpool, &user.name).await?;
+	db::create_if_user(dbpool, &target.name).await?;
 
 	let poll = CreatePoll::new()
 		.question(
@@ -52,27 +46,22 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) {
 		CreateInteractionResponseMessage::new().poll(poll),
 	);
 
-	command.create_response(&ctx, builder).await.unwrap();
+	command.create_response(&ctx, builder).await?;
 
 	time::sleep(Duration::from_mins(1)).await;
 
-	let message = command.get_response(&ctx).await.unwrap();
-	message.end_poll(&ctx).await.unwrap();
+	let message = command.get_response(&ctx).await?.end_poll(&ctx).await?;
 
-	time::sleep(Duration::from_secs(4)).await;
+	// We know this message has a poll, and results (since we just made and ended it)
+	let poll = message.poll.unwrap();
+	let results = poll.results.unwrap();
 
-	// Fetch it again after poll has ended, idk if this is necessary prob not
-	let message = command.get_response(&ctx).await.unwrap();
-	let msg_poll = message.poll.unwrap();
-	let results = msg_poll.results.unwrap();
-
-	let results_vec: Vec<(String, u64)> = results
+	let results: Vec<(String, u64)> = results
 		.answer_counts
 		.iter()
 		.filter_map(|answer_count| {
 			// Find the answer text that matches this ID
-			msg_poll
-				.answers
+			poll.answers
 				.iter()
 				.find(|a| a.answer_id == answer_count.id)
 				.and_then(|a| a.poll_media.text.clone())
@@ -80,30 +69,21 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) {
 		})
 		.collect();
 
-	let (winner, w_scr) = results_vec.iter().max_by_key(|r| r.1).unwrap();
-	let (loser, l_scr) = results_vec.iter().min_by_key(|r| r.1).unwrap();
+	// By definition this poll has at least 2 elements, unwrap is fine
+	let (winner, w_scr) = results.iter().max_by_key(|r| r.1).unwrap();
+	let (loser, l_scr) = results.iter().min_by_key(|r| r.1).unwrap();
 
-	if w_scr == l_scr {
-		command
-			.create_followup(
-				&ctx,
-				CreateInteractionResponseFollowup::new()
-					.content(format!("Votes are tied. {winner} and {loser} tied.")),
-			)
-			.await
-			.unwrap();
+	let res = if w_scr == l_scr {
+		format!("{winner} and {loser} tied. No elo has been lost or gained")
 	} else {
-		let (w_delta, l_delta) = db::finalize_match(dbpool, winner, loser).await.unwrap();
+		let (w_delta, l_delta) = db::finalize_match(dbpool, winner, loser).await?;
 		let l_delta = l_delta.abs();
+		format!(
+			"{loser} has lost (-{l_delta} elo). {winner} is the morally or comedically superior individual (+{w_delta} elo)"
+		)
+	};
 
-		command
-			.create_followup(
-				&ctx,
-				CreateInteractionResponseFollowup::new().content(format!(
-					"{loser} is a fat fucking chud, -{l_delta} elo. {winner} is a chad, +{w_delta} elo"
-				)),
-			)
-			.await
-			.unwrap();
-	}
+	command.create_followup(&ctx, make_followup(&res)).await?;
+
+	Ok(())
 }

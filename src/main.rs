@@ -1,17 +1,19 @@
 mod commands;
 mod db;
+mod utils;
 
 use std::env;
 use std::str::FromStr;
 
 use serenity::all::{
-	ChannelId, Context, CreateInteractionResponse, CreateInteractionResponseMessage,
-	EventHandler, GatewayIntents, Interaction, Permissions,
+	ChannelId, Context, EventHandler, GatewayIntents, Interaction, Permissions,
 };
 use serenity::prelude::TypeMapKey;
 use serenity::{Client, async_trait};
 use sqlx::SqlitePool;
 use sqlx::sqlite::SqliteConnectOptions;
+
+use crate::utils::make_resp;
 
 #[tokio::main]
 async fn main() {
@@ -76,19 +78,18 @@ impl EventHandler for Handler {
             "leaderboard" => commands::leaderboard(&ctx, command).await,
             "challenge" => {
 				if &command.channel.as_ref().unwrap().id != ctx.data.read().await.get::<Current>().unwrap() {
+					let err = format!("Nosedive can't listen for polls in this channel, try in <#{}> instead", command.channel.as_ref().unwrap().id);
+
 					command
 						.create_response(
 							&ctx,
-							CreateInteractionResponse::Message(
-								CreateInteractionResponseMessage::new()
-									.content(format!("Nosedive can't listen for polls in this channel, try in <#{}> instead", command.channel.as_ref().unwrap().id))
-							)
+							make_resp(&err)
 						)
 						.await
 						.unwrap();
 				}
 				else {
-					commands::challenge(&ctx, command).await;
+					commands::challenge(&ctx, command).await.unwrap();
 				}
 			},
 			"setchannel" => {
@@ -96,10 +97,7 @@ impl EventHandler for Handler {
 					command
 						.create_response(
 							&ctx,
-							CreateInteractionResponse::Message(
-								CreateInteractionResponseMessage::new()
-									.content("You need the Manage Channels permission to use /setchannel")
-							)
+							make_resp("You need the Manage Channels permission to use /setchannel")
 						)
 						.await
 						.unwrap();
@@ -113,10 +111,7 @@ impl EventHandler for Handler {
             _ => command
                 .create_response(
                     &ctx,
-                    CreateInteractionResponse::Message(
-                        CreateInteractionResponseMessage::new()
-                            .content("That command can't be handled by this version of nosedive. Please try updating or contacting the admin of this instance."),
-                    ),
+					make_resp("That command can't be handled by this version of nosedive. Please try updating or contacting the admin of this instance.")
                 )
                 .await
                 .unwrap(),

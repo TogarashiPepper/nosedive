@@ -29,8 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		CommandOptionType::User,
 		"user",
 		"The user to fetch the elo of",
-	)
-	.required(true);
+	);
 
 	let get_elo = CreateCommand::new("getelo")
 		.description("Fetches the elo of a given user")

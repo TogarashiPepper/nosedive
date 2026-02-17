@@ -1,11 +1,9 @@
 use std::fmt::Write;
 
-use serenity::all::{
-	CommandInteraction, Context, CreateInteractionResponse,
-	CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, Context};
 
 use crate::DatabasePool;
+use crate::utils::make_resp;
 
 pub async fn leaderboard(ctx: &Context, command: CommandInteraction) {
 	let data = ctx.data.write().await;
@@ -19,12 +17,7 @@ pub async fn leaderboard(ctx: &Context, command: CommandInteraction) {
 	}
 
 	command
-		.create_response(
-			&ctx,
-			CreateInteractionResponse::Message(
-				CreateInteractionResponseMessage::new().content(buf),
-			),
-		)
+		.create_response(&ctx, make_resp(&buf))
 		.await
 		.unwrap();
 }

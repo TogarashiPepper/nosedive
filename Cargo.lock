@@ -1123,6 +1123,7 @@ dependencies = [
 name = "nosedive"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "dotenvy",
  "serenity",
  "sqlx",
