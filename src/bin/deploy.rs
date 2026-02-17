@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	let challenge = CreateCommand::new("challenge")
 		.description(
-			"Pit yourself against someone. Winner gets socal credit (and loser loses it).",
+			"Pit yourself against someone. Winner gets social credit (and loser loses it).",
 		)
 		.set_options(vec![user1]);
 
