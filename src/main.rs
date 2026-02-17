@@ -5,9 +5,7 @@ use std::{env, time::Duration};
 use serenity::{
     Client,
     all::{
-        Context, CreateInteractionResponse, CreateInteractionResponseFollowup,
-        CreateInteractionResponseMessage, CreatePoll, CreatePollAnswer, EventHandler,
-        GatewayIntents, Interaction,
+        ChannelId, Context, CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, CreatePoll, CreatePollAnswer, EventHandler, GatewayIntents, Interaction
     },
     async_trait,
     prelude::TypeMapKey,
@@ -16,7 +14,7 @@ use sqlx::SqlitePool;
 
 #[tokio::main]
 async fn main() {
-    dotenvy::dotenv();
+    let _ = dotenvy::dotenv();
 
     let token = env::var("DISCORD_TOKEN").unwrap();
     let dbpool = SqlitePool::connect("sqlite:database.db").await.unwrap();
@@ -50,6 +48,10 @@ impl EventHandler for Handler {
 
         let data = ctx.data.read().await;
         let dbpool = data.get::<DatabasePool>().unwrap();
+
+		if command.channel.as_ref().unwrap().id != ChannelId::new(806571996485386240) {
+			return;
+		}
 
         if command.data.name == "getelo" {
             let user = command.data.options[0]
