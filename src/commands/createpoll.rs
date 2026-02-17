@@ -20,6 +20,21 @@ pub async fn createpoll(ctx: &Context, command: CommandInteraction) {
 	let user1 = get_usr(ctx, &command.data.options[0].value).await;
 	let user2 = get_usr(ctx, &command.data.options[1].value).await;
 
+	if (user1.id != command.user.id) && (user2.id != command.user.id) {
+		command
+			.create_response(
+				&ctx,
+				CreateInteractionResponse::Message(
+					CreateInteractionResponseMessage::new()
+						.content("You must be one of the people in your poll."),
+				),
+			)
+			.await
+			.unwrap();
+
+		return;
+	}
+
 	if user1.id == user2.id {
 		command
 			.create_response(
@@ -31,6 +46,8 @@ pub async fn createpoll(ctx: &Context, command: CommandInteraction) {
 			)
 			.await
 			.unwrap();
+
+		return;
 	}
 
 	db::create_if_user(dbpool, &user1.name).await.unwrap();
