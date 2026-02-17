@@ -5,8 +5,8 @@ edition = "2024"
 default-run = "nosedive"
 
 [dependencies]
-dotenvy = "0.15.7"
-serenity = "0.12.5"
-tokio = { version = "1.49.0", features = ["full"] }
+dotenvy = "0.15"
+serenity = "0.12"
+tokio = { version = "1.49", features = ["full"] }
 sqlx = { version = "0.8", features = [ "runtime-tokio", "sqlite", "macros" ] }
 
