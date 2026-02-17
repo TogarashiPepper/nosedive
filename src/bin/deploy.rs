@@ -14,22 +14,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	let user1 = CreateCommandOption::new(
 		CommandOptionType::User,
-		"first",
-		"The first user in the match",
-	)
-	.required(true);
-	let user2 = CreateCommandOption::new(
-		CommandOptionType::User,
-		"second",
-		"The second user in the match",
+		"target",
+		"The user you wish to challenge",
 	)
 	.required(true);
 
-	let createpoll = CreateCommand::new("createpoll")
+	let challenge = CreateCommand::new("challenge")
 		.description(
-			"Pit two users against each other. Winner recieves socal credit (and loser loses it).",
+			"Pit yourself against someone. Winner gets socal credit (and loser loses it).",
 		)
-		.set_options(vec![user1, user2]);
+		.set_options(vec![user1]);
 
 	let user = CreateCommandOption::new(
 		CommandOptionType::User,
@@ -49,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.description("Sets which channel the bot will listen in (to stop users from farming in a channel people ignore).")
 		.add_option(CreateCommandOption::new(CommandOptionType::Channel, "channel", "the channel to listen in").required(true));
 
-	http.create_global_commands(&[createpoll, get_elo, leaderboard, set_channel])
+	http.create_global_commands(&[challenge, get_elo, leaderboard, set_channel])
 		.await?;
 
 	Ok(())

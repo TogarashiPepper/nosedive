@@ -13,53 +13,23 @@ async fn get_usr(ctx: &Context, option: &CommandDataOptionValue) -> User {
 	option.as_user_id().unwrap().to_user(ctx).await.unwrap()
 }
 
-pub async fn createpoll(ctx: &Context, command: CommandInteraction) {
+pub async fn challenge(ctx: &Context, command: CommandInteraction) {
 	let data = ctx.data.write().await;
 	let dbpool = data.get::<DatabasePool>().unwrap();
 
-	let user1 = get_usr(ctx, &command.data.options[0].value).await;
-	let user2 = get_usr(ctx, &command.data.options[1].value).await;
+	let user = &command.user;
+	let target = get_usr(ctx, &command.data.options[0].value).await;
 
-	if (user1.id != command.user.id) && (user2.id != command.user.id) {
-		command
-			.create_response(
-				&ctx,
-				CreateInteractionResponse::Message(
-					CreateInteractionResponseMessage::new()
-						.content("You must be one of the people in your poll."),
-				),
-			)
-			.await
-			.unwrap();
-
-		return;
-	}
-
-	if user1.id == user2.id {
-		command
-			.create_response(
-				&ctx,
-				CreateInteractionResponse::Message(
-					CreateInteractionResponseMessage::new()
-						.content("Cannot create poll with two of the same user"),
-				),
-			)
-			.await
-			.unwrap();
-
-		return;
-	}
-
-	db::create_if_user(dbpool, &user1.name).await.unwrap();
-	db::create_if_user(dbpool, &user2.name).await.unwrap();
+	db::create_if_user(dbpool, &user.name).await.unwrap();
+	db::create_if_user(dbpool, &target.name).await.unwrap();
 
 	let poll = CreatePoll::new()
 		.question(
 			"Which user is more morally or comedically superior here? (poll ends in 1 minute)",
 		)
 		.answers(vec![
-			CreatePollAnswer::new().text(user1.name),
-			CreatePollAnswer::new().text(user2.name),
+			CreatePollAnswer::new().text(&user.name),
+			CreatePollAnswer::new().text(target.name),
 		])
 		.duration(Duration::from_mins(60));
 

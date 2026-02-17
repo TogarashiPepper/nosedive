@@ -88,7 +88,7 @@ impl EventHandler for Handler {
 						.unwrap();
 				}
 				else {
-					commands::createpoll(&ctx, command).await;
+					commands::challenge(&ctx, command).await;
 				}
 			},
 			"setchannel" => {
