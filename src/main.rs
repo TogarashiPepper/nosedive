@@ -1,23 +1,43 @@
 mod db;
 
-use std::{env, time::Duration};
+use std::{env, str::FromStr, time::Duration};
 
 use serenity::{
     Client,
     all::{
-        ChannelId, Context, CreateInteractionResponse, CreateInteractionResponseFollowup, CreateInteractionResponseMessage, CreatePoll, CreatePollAnswer, EventHandler, GatewayIntents, Interaction
+        ChannelId, Context, CreateInteractionResponse, CreateInteractionResponseFollowup,
+        CreateInteractionResponseMessage, CreatePoll, CreatePollAnswer, EventHandler,
+        GatewayIntents, Interaction,
     },
     async_trait,
     prelude::TypeMapKey,
 };
-use sqlx::SqlitePool;
+use sqlx::{SqlitePool, sqlite::SqliteConnectOptions};
 
 #[tokio::main]
 async fn main() {
     let _ = dotenvy::dotenv();
 
     let token = env::var("DISCORD_TOKEN").unwrap();
-    let dbpool = SqlitePool::connect("sqlite:database.db").await.unwrap();
+
+    let dbopts = SqliteConnectOptions::from_str("sqlite:database.db")
+        .unwrap()
+        .create_if_missing(true);
+    let dbpool = SqlitePool::connect_with(dbopts).await.unwrap();
+
+    sqlx::query!(
+        r#"
+			CREATE TABLE IF NOT EXISTS users
+			(
+				username    VARCHAR PRIMARY KEY NOT NULL,
+				elo         INTEGER             NOT NULL
+			);
+		"#
+    )
+    .execute(&dbpool)
+    .await
+    .unwrap();
+
     let mut client = Client::builder(token, GatewayIntents::non_privileged())
         .event_handler(Handler)
         .await
@@ -49,9 +69,9 @@ impl EventHandler for Handler {
         let data = ctx.data.read().await;
         let dbpool = data.get::<DatabasePool>().unwrap();
 
-		if command.channel.as_ref().unwrap().id != ChannelId::new(806571996485386240) {
-			return;
-		}
+        if command.channel.as_ref().unwrap().id != ChannelId::new(806571996485386240) {
+            return;
+        }
 
         if command.data.name == "getelo" {
             let user = command.data.options[0]
@@ -95,7 +115,7 @@ impl EventHandler for Handler {
                 .await
                 .unwrap();
 
-			return;
+            return;
         } else if command.data.name != "createpoll" {
             return;
         }
