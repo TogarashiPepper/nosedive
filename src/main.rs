@@ -19,7 +19,7 @@ async fn main() {
 
 	let token = env::var("DISCORD_TOKEN").unwrap();
 
-	let dbopts = SqliteConnectOptions::from_str("sqlite:database.db")
+	let dbopts = SqliteConnectOptions::from_str(&env::var("DATABASE_URL").unwrap())
 		.unwrap()
 		.create_if_missing(true);
 	let dbpool = SqlitePool::connect_with(dbopts).await.unwrap();

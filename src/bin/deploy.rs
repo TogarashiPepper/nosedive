@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	let set_channel = CreateCommand::new("setchannel")
 		.description("Sets which channel the bot will listen in (to stop users from farming in a channel people ignore).")
-		.add_option(CreateCommandOption::new(CommandOptionType::Channel, "channel", "the channel to listen in"));
+		.add_option(CreateCommandOption::new(CommandOptionType::Channel, "channel", "the channel to listen in").required(true));
 
 	http.create_global_commands(&[createpoll, get_elo, leaderboard, set_channel])
 		.await?;
