@@ -5,16 +5,18 @@ use serenity::all::{
 	CreateInteractionResponseFollowup, CreateInteractionResponseMessage, CreatePoll,
 	CreatePollAnswer, User,
 };
-use sqlx::SqlitePool;
 use tokio::time;
 
-use crate::db;
+use crate::{DatabasePool, db};
 
 async fn get_usr(ctx: &Context, option: &CommandDataOptionValue) -> User {
 	option.as_user_id().unwrap().to_user(ctx).await.unwrap()
 }
 
-pub async fn createpoll(dbpool: &SqlitePool, ctx: &Context, command: CommandInteraction) {
+pub async fn createpoll(ctx: &Context, command: CommandInteraction) {
+	let data = ctx.data.write().await;
+	let dbpool = data.get::<DatabasePool>().unwrap();
+
 	let user1 = get_usr(ctx, &command.data.options[0].value).await;
 	let user2 = get_usr(ctx, &command.data.options[1].value).await;
 

@@ -4,13 +4,13 @@ use serenity::all::{
 	CommandInteraction, Context, CreateInteractionResponse,
 	CreateInteractionResponseMessage,
 };
-use sqlx::SqlitePool;
 
-pub async fn leaderboard(
-	dbpool: &SqlitePool,
-	ctx: &Context,
-	command: CommandInteraction,
-) {
+use crate::DatabasePool;
+
+pub async fn leaderboard(ctx: &Context, command: CommandInteraction) {
+	let data = ctx.data.write().await;
+	let dbpool = data.get::<DatabasePool>().unwrap();
+
 	let rankings = crate::db::rankings(dbpool).await.unwrap();
 	let mut buf = String::from("Social Credit Leaderboard:\n");
 

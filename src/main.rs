@@ -71,14 +71,11 @@ impl EventHandler for Handler {
 			return;
 		};
 
-		let data = ctx.data.read().await;
-		let dbpool = data.get::<DatabasePool>().unwrap();
-
 		match command.data.name.as_str() {
-            "getelo" => commands::get_elo(dbpool, &ctx, command).await,
-            "leaderboard" => commands::leaderboard(dbpool, &ctx, command).await,
+            "getelo" => commands::get_elo(&ctx, command).await,
+            "leaderboard" => commands::leaderboard(&ctx, command).await,
             "createpoll" => {
-				if &command.channel.as_ref().unwrap().id != data.get::<Current>().unwrap() {
+				if &command.channel.as_ref().unwrap().id != ctx.data.read().await.get::<Current>().unwrap() {
 					command
 						.create_response(
 							&ctx,
@@ -91,7 +88,7 @@ impl EventHandler for Handler {
 						.unwrap();
 				}
 				else {
-					commands::createpoll(dbpool, &ctx, command).await;
+					commands::createpoll(&ctx, command).await;
 				}
 			},
 			"setchannel" => {

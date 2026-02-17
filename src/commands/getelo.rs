@@ -2,9 +2,13 @@ use serenity::all::{
 	CommandInteraction, Context, CreateInteractionResponse,
 	CreateInteractionResponseMessage,
 };
-use sqlx::SqlitePool;
 
-pub async fn get_elo(dbpool: &SqlitePool, ctx: &Context, command: CommandInteraction) {
+use crate::DatabasePool;
+
+pub async fn get_elo(ctx: &Context, command: CommandInteraction) {
+	let data = ctx.data.write().await;
+	let dbpool = data.get::<DatabasePool>().unwrap();
+
 	let user = command.data.options[0]
 		.value
 		.as_user_id()
