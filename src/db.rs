@@ -70,8 +70,8 @@ pub async fn finalize_match(
 ) -> Result<(i64, i64), sqlx::Error> {
 	const K: f64 = 5.0;
 
-	let r_w = get_elo(pool, winner).await.unwrap();
-	let r_l = get_elo(pool, loser).await.unwrap();
+	let r_w = get_elo(pool, winner).await?;
+	let r_l = get_elo(pool, loser).await?;
 
 	// Expected score for winner
 	let e_w = 1.0 / (1.0 + 10f64.powf((r_l - r_w) as f64 / 400.0));
@@ -79,8 +79,8 @@ pub async fn finalize_match(
 	let r_w_new = (r_w as f64 + K * delta).floor() as i64;
 	let r_l_new = (r_l as f64 - K * delta).floor() as i64;
 
-	set_elo(pool, winner, r_w_new).await.unwrap();
-	set_elo(pool, loser, r_l_new).await.unwrap();
+	set_elo(pool, winner, r_w_new).await?;
+	set_elo(pool, loser, r_l_new).await?;
 
 	Ok((r_w_new - r_w, r_l_new - r_l))
 }

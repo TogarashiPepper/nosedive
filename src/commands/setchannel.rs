@@ -1,16 +1,16 @@
 use serenity::all::{CommandInteraction, Context};
+use anyhow::Result;
 
 use crate::Current;
 use crate::utils::make_resp;
 
-pub async fn set_channel(ctx: &Context, command: CommandInteraction) {
+pub async fn set_channel(ctx: &Context, command: CommandInteraction) -> Result<()> {
 	let channel = command.data.options[0]
 		.value
 		.as_channel_id()
 		.unwrap()
 		.to_channel(ctx)
-		.await
-		.unwrap();
+		.await?;
 
 	ctx.data.write().await.insert::<Current>(channel.id());
 
@@ -22,6 +22,7 @@ pub async fn set_channel(ctx: &Context, command: CommandInteraction) {
 				channel
 			)),
 		)
-		.await
-		.unwrap();
+		.await?;
+
+	Ok(())
 }

@@ -74,8 +74,8 @@ impl EventHandler for Handler {
 		};
 
 		match command.data.name.as_str() {
-            "getelo" => commands::get_elo(&ctx, command).await,
-            "leaderboard" => commands::leaderboard(&ctx, command).await,
+            "getelo" => commands::get_elo(&ctx, command).await.unwrap(),
+            "leaderboard" => commands::leaderboard(&ctx, command).await.unwrap(),
             "challenge" => {
 				if &command.channel.as_ref().unwrap().id != ctx.data.read().await.get::<Current>().unwrap() {
 					let err = format!("Nosedive can't listen for polls in this channel, try in <#{}> instead", command.channel.as_ref().unwrap().id);
@@ -103,7 +103,7 @@ impl EventHandler for Handler {
 						.unwrap();
 				}
 				else {
-					commands::set_channel(&ctx, command).await;
+					commands::set_channel(&ctx, command).await.unwrap();
 				}
 			},
 
