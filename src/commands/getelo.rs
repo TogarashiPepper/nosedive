@@ -5,7 +5,7 @@ use crate::utils::make_resp;
 use anyhow::Result;
 
 pub async fn get_elo(ctx: &Context, command: CommandInteraction) -> Result<()> {
-	let data = ctx.data.write().await;
+	let data = ctx.data.read().await;
 	let dbpool = data.get::<DatabasePool>().unwrap();
 
 	let opt = command.data.options.first();

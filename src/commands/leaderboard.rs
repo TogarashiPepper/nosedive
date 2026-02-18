@@ -7,7 +7,7 @@ use crate::DatabasePool;
 use crate::utils::make_resp;
 
 pub async fn leaderboard(ctx: &Context, command: CommandInteraction) -> Result<()> {
-	let data = ctx.data.write().await;
+	let data = ctx.data.read().await;
 	let dbpool = data.get::<DatabasePool>().unwrap();
 
 	let rankings = crate::db::rankings(dbpool).await?;

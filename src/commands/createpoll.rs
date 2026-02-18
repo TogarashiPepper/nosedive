@@ -2,18 +2,13 @@ use std::time::Duration;
 
 use anyhow::Result;
 use serenity::all::{
-	AnswerId, CommandDataOptionValue, CommandInteraction, Context,
-	CreateInteractionResponse, CreateInteractionResponseMessage, CreatePoll,
-	CreatePollAnswer, Poll, User,
+	CommandInteraction, Context, CreateInteractionResponse,
+	CreateInteractionResponseMessage, CreatePoll, CreatePollAnswer, User,
 };
 use tokio::time;
 
-use crate::utils::{make_followup, make_resp};
+use crate::utils::{get_usr, make_followup, make_resp};
 use crate::{DatabasePool, db};
-
-async fn get_usr(ctx: &Context, option: &CommandDataOptionValue) -> User {
-	option.as_user_id().unwrap().to_user(ctx).await.unwrap()
-}
 
 pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()> {
 	let user = &command.user;
@@ -35,7 +30,7 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()>
 
 	// Create a scope to acquire and drop the lock in
 	{
-		let data = ctx.data.write().await;
+		let data = ctx.data.read().await;
 		let dbpool = data.get::<DatabasePool>().unwrap();
 
 		db::create_if_user(dbpool, &user.id.to_string()).await?;
@@ -93,7 +88,7 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()>
 		.unwrap_or(0);
 
 	// No separate scope for the lock here since we exit soon anyways
-	let data = ctx.data.write().await;
+	let data = ctx.data.read().await;
 	let dbpool = data.get::<DatabasePool>().unwrap();
 
 	let res = if user_score == target_score {

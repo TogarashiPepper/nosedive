@@ -40,9 +40,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	let set_channel = CreateCommand::new("setchannel")
 		.description("Sets which channel the bot will listen in (to stop users from farming in a channel people ignore).")
-		.add_option(CreateCommandOption::new(CommandOptionType::Channel, "channel", "the channel to listen in").required(true));
+		.add_option(CreateCommandOption::new(CommandOptionType::Channel, "channel", "The channel to listen in").required(true));
 
-	http.create_global_commands(&[challenge, get_elo, leaderboard, set_channel])
+	let gift = CreateCommand::new("give")
+		.description("Give elo to another user")
+		.add_option(
+			CreateCommandOption::new(
+				CommandOptionType::User,
+				"recipient",
+				"The user to give elo to",
+			)
+			.required(true),
+		)
+		.add_option(CreateCommandOption::new(
+			CommandOptionType::Integer,
+			"amount",
+			"the amount to gift (defaults to 1/4th your elo)",
+		));
+
+	http.create_global_commands(&[challenge, get_elo, leaderboard, set_channel, gift])
 		.await?;
 
 	Ok(())

@@ -55,8 +55,8 @@ async fn main() {
 
 struct Handler;
 
-struct Current;
-struct DatabasePool;
+pub struct Current;
+pub struct DatabasePool;
 
 impl TypeMapKey for DatabasePool {
 	type Value = SqlitePool;
@@ -106,6 +106,7 @@ impl EventHandler for Handler {
 					commands::set_channel(&ctx, command).await.unwrap();
 				}
 			},
+			"give" => commands::give(&ctx, command).await.unwrap(),
 
 			// This really shouldn't ever happen
             _ => command
