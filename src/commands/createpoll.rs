@@ -27,6 +27,12 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()>
 			.await?;
 
 		return Ok(());
+	} else if target.bot {
+		command
+			.create_response(&ctx, make_resp("You can't challenge a bot"))
+			.await?;
+
+		return Ok(());
 	}
 
 	db::create_if_user(dbpool, &user.name).await?;
