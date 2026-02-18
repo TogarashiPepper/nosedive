@@ -58,7 +58,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 			"the amount to gift (defaults to 1/4th your elo)",
 		));
 
-	http.create_global_commands(&[challenge, get_elo, leaderboard, set_channel, gift])
+	let coinflip = CreateCommand::new("coinflip")
+		.description(
+			"Flips a coin, if it's heads, 1.8x your wager, if its tails you lose it all.",
+		)
+		.add_option(CreateCommandOption::new(
+			CommandOptionType::Integer,
+			"wager",
+			"the amount of elo you want to gamble (defaults to half your elo)",
+		));
+
+	http.create_global_commands(&[challenge, get_elo, leaderboard, set_channel, gift, coinflip])
 		.await?;
 
 	Ok(())

@@ -107,6 +107,7 @@ impl EventHandler for Handler {
 				}
 			},
 			"give" => commands::give(&ctx, command).await.unwrap(),
+			"coinflip" => commands::coinflip(&ctx, command).await.unwrap(),
 
 			// This really shouldn't ever happen
             _ => command
