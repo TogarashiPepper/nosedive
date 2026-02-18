@@ -4,7 +4,7 @@
   "describe": {
     "columns": [
       {
-        "name": "username",
+        "name": "id",
         "ordinal": 0,
         "type_info": "Text"
       },

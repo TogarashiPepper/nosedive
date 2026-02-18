@@ -1,9 +1,9 @@
 use sqlx::SqlitePool;
 
-pub async fn user_exists(pool: &SqlitePool, username: &str) -> Result<bool, sqlx::Error> {
+pub async fn user_exists(pool: &SqlitePool, id: &str) -> Result<bool, sqlx::Error> {
 	let exists: i64 = sqlx::query_scalar!(
-		"SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)",
-		username
+		"SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)",
+		id
 	)
 	.fetch_one(pool)
 	.await?;
@@ -11,13 +11,13 @@ pub async fn user_exists(pool: &SqlitePool, username: &str) -> Result<bool, sqlx
 	Ok(exists == 1)
 }
 
-pub async fn create_user(pool: &SqlitePool, username: &str) -> Result<(), sqlx::Error> {
+pub async fn create_user(pool: &SqlitePool, id: &str) -> Result<(), sqlx::Error> {
 	sqlx::query!(
 		r#"
 			INSERT INTO users
 			VALUES ($1, 0)
 		"#,
-		username,
+		id,
 	)
 	.execute(pool)
 	.await?;
@@ -27,20 +27,20 @@ pub async fn create_user(pool: &SqlitePool, username: &str) -> Result<(), sqlx::
 
 pub async fn create_if_user(
 	pool: &SqlitePool,
-	username: &str,
+	id: &str,
 ) -> Result<(), sqlx::Error> {
-	if !user_exists(pool, username).await? {
-		create_user(pool, username).await?;
+	if !user_exists(pool, id).await? {
+		create_user(pool, id).await?;
 	}
 
 	Ok(())
 }
 
-pub async fn get_elo(pool: &SqlitePool, username: &str) -> Result<i64, sqlx::Error> {
-	create_if_user(pool, username).await?;
+pub async fn get_elo(pool: &SqlitePool, id: &str) -> Result<i64, sqlx::Error> {
+	create_if_user(pool, id).await?;
 
 	let elo: i64 =
-		sqlx::query_scalar!("SELECT elo FROM users WHERE username = $1", username)
+		sqlx::query_scalar!("SELECT elo FROM users WHERE id = $1", id)
 			.fetch_one(pool)
 			.await?;
 
@@ -49,13 +49,13 @@ pub async fn get_elo(pool: &SqlitePool, username: &str) -> Result<i64, sqlx::Err
 
 pub async fn set_elo(
 	pool: &SqlitePool,
-	username: &str,
+	id: &str,
 	elo: i64,
 ) -> Result<(), sqlx::Error> {
 	sqlx::query_scalar!(
-		"UPDATE users SET elo = $1 WHERE username = $2",
+		"UPDATE users SET elo = $1 WHERE id = $2",
 		elo,
-		username
+		id
 	)
 	.execute(pool)
 	.await?;
@@ -90,5 +90,5 @@ pub async fn rankings(pool: &SqlitePool) -> Result<Vec<(String, i64)>, sqlx::Err
 		.fetch_all(pool)
 		.await?;
 
-	Ok(res.into_iter().map(|r| (r.username, r.elo)).collect())
+	Ok(res.into_iter().map(|r| (r.id, r.elo)).collect())
 }

@@ -2,8 +2,9 @@ use std::time::Duration;
 
 use anyhow::Result;
 use serenity::all::{
-	CommandDataOptionValue, CommandInteraction, Context, CreateInteractionResponse,
-	CreateInteractionResponseMessage, CreatePoll, CreatePollAnswer, User,
+	AnswerId, CommandDataOptionValue, CommandInteraction, Context,
+	CreateInteractionResponse, CreateInteractionResponseMessage, CreatePoll,
+	CreatePollAnswer, Poll, User,
 };
 use tokio::time;
 
@@ -15,9 +16,6 @@ async fn get_usr(ctx: &Context, option: &CommandDataOptionValue) -> User {
 }
 
 pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()> {
-	let data = ctx.data.write().await;
-	let dbpool = data.get::<DatabasePool>().unwrap();
-
 	let user = &command.user;
 	let target = get_usr(ctx, &command.data.options[0].value).await;
 
@@ -35,8 +33,14 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()>
 		return Ok(());
 	}
 
-	db::create_if_user(dbpool, &user.name).await?;
-	db::create_if_user(dbpool, &target.name).await?;
+	// Create a scope to acquire and drop the lock in
+	{
+		let data = ctx.data.write().await;
+		let dbpool = data.get::<DatabasePool>().unwrap();
+
+		db::create_if_user(dbpool, &user.id.to_string()).await?;
+		db::create_if_user(dbpool, &target.id.to_string()).await?;
+	}
 
 	let poll = CreatePoll::new()
 		.question(
@@ -44,7 +48,7 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()>
 		)
 		.answers(vec![
 			CreatePollAnswer::new().text(&user.name),
-			CreatePollAnswer::new().text(target.name),
+			CreatePollAnswer::new().text(&target.name),
 		])
 		.duration(Duration::from_mins(60));
 
@@ -62,28 +66,55 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()>
 	let poll = message.poll.unwrap();
 	let results = poll.results.unwrap();
 
-	let results: Vec<(String, u64)> = results
+	let user_answer_id = poll
+		.answers
+		.iter()
+		.find_map(|pa| {
+			(pa.poll_media.text.as_deref()? == user.name).then_some(pa.answer_id)
+		})
+		.unwrap();
+	let target_answer_id = poll
+		.answers
+		.iter()
+		.find_map(|pa| {
+			(pa.poll_media.text.as_deref()? == target.name).then_some(pa.answer_id)
+		})
+		.unwrap();
+
+	let user_score = results
 		.answer_counts
 		.iter()
-		.filter_map(|answer_count| {
-			// Find the answer text that matches this ID
-			poll.answers
-				.iter()
-				.find(|a| a.answer_id == answer_count.id)
-				.and_then(|a| a.poll_media.text.clone())
-				.map(|text| (text, answer_count.count))
-		})
-		.collect();
+		.find_map(|pac| (pac.id == user_answer_id).then_some(pac.count))
+		.unwrap_or(0);
+	let target_score = results
+		.answer_counts
+		.iter()
+		.find_map(|pac| (pac.id == target_answer_id).then_some(pac.count))
+		.unwrap_or(0);
 
-	// By definition this poll has at least 2 elements, unwrap is fine
-	let (winner, w_scr) = results.iter().max_by_key(|r| r.1).unwrap();
-	let (loser, l_scr) = results.iter().min_by_key(|r| r.1).unwrap();
+	// No separate scope for the lock here since we exit soon anyways
+	let data = ctx.data.write().await;
+	let dbpool = data.get::<DatabasePool>().unwrap();
 
-	let res = if w_scr == l_scr {
-		format!("{winner} and {loser} tied. No elo has been lost or gained")
+	let res = if user_score == target_score {
+		format!("{user} and {target} tied. No elo has been lost or gained")
 	} else {
-		let (w_delta, l_delta) = db::finalize_match(dbpool, winner, loser).await?;
+		let loser: &User;
+		let winner: &User;
+
+		if user_score > target_score {
+			winner = user;
+			loser = &target;
+		} else {
+			winner = &target;
+			loser = user;
+		}
+
+		let (w_delta, l_delta) =
+			db::finalize_match(dbpool, &winner.id.to_string(), &loser.id.to_string())
+				.await?;
 		let l_delta = l_delta.abs();
+
 		format!(
 			"{loser} has lost (-{l_delta} elo). {winner} is the morally or comedically superior individual (+{w_delta} elo)"
 		)

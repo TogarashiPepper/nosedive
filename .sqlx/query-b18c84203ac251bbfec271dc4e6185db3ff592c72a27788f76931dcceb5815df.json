@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT elo FROM users WHERE username = $1",
+  "query": "SELECT elo FROM users WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -16,5 +16,5 @@
       false
     ]
   },
-  "hash": "627525629402aa4a38411c8c2e3f1e151d40de09ee5a24b3805f94a0ff63e076"
+  "hash": "b18c84203ac251bbfec271dc4e6185db3ff592c72a27788f76931dcceb5815df"
 }

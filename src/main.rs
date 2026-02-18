@@ -30,7 +30,7 @@ async fn main() {
 		r#"
 			CREATE TABLE IF NOT EXISTS users
 			(
-				username    VARCHAR PRIMARY KEY NOT NULL,
+				id          VARCHAR PRIMARY KEY NOT NULL,
 				elo         INTEGER             NOT NULL
 			);
 		"#
