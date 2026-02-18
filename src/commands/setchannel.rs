@@ -1,5 +1,5 @@
-use serenity::all::{CommandInteraction, Context};
 use anyhow::Result;
+use serenity::all::{CommandInteraction, Context};
 
 use crate::Current;
 use crate::utils::make_resp;
@@ -12,13 +12,20 @@ pub async fn set_channel(ctx: &Context, command: CommandInteraction) -> Result<(
 		.to_channel(ctx)
 		.await?;
 
+	if channel.clone().category().is_some() {
+		command
+			.create_response(&ctx, make_resp("Channel must be of type text."))
+			.await?;
+		return Ok(());
+	}
+
 	ctx.data.write().await.insert::<Current>(channel.id());
 
 	command
 		.create_response(
 			&ctx,
 			make_resp(&format!(
-				"Nosedive will now only listen for polls in {}",
+				"Nosedive will now only listen for polls in {}.",
 				channel
 			)),
 		)

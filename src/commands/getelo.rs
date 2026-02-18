@@ -1,8 +1,8 @@
+use anyhow::Result;
 use serenity::all::{CommandInteraction, Context};
 
 use crate::DatabasePool;
 use crate::utils::make_resp;
-use anyhow::Result;
 
 pub async fn get_elo(ctx: &Context, command: CommandInteraction) -> Result<()> {
 	let data = ctx.data.read().await;
@@ -16,9 +16,11 @@ pub async fn get_elo(ctx: &Context, command: CommandInteraction) -> Result<()> {
 		None => &command.user,
 	};
 
-	let elo = crate::db::get_elo(dbpool, &user.id.to_string()).await?;
+	let elo = crate::db::get_elo(dbpool, &user.id.to_string())
+		.await?
+		.floor();
 	command
-		.create_response(&ctx, make_resp(&format!("User {} has {elo} elo", user)))
+		.create_response(&ctx, make_resp(&format!("User {} has {elo} elo.", user)))
 		.await?;
 
 	Ok(())

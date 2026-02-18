@@ -1,10 +1,8 @@
 use anyhow::Result;
 use serenity::all::{CommandInteraction, Context};
 
-use crate::{
-	DatabasePool, db,
-	utils::{get_usr, make_resp},
-};
+use crate::utils::{get_usr, make_resp};
+use crate::{DatabasePool, db};
 
 pub async fn give(ctx: &Context, command: CommandInteraction) -> Result<()> {
 	let pool = ctx.data.read().await;
@@ -22,14 +20,14 @@ pub async fn give(ctx: &Context, command: CommandInteraction) -> Result<()> {
 		.data
 		.options
 		.get(1)
-		.map(|x| x.value.as_i64().unwrap())
-		.unwrap_or(user_elo / 4);
+		.map(|x| x.value.as_i64().unwrap() as f64)
+		.unwrap_or(user_elo / 4.0);
 
-	if amount <= 0 {
+	if amount <= 0.0 {
 		command
 			.create_response(
 				&ctx,
-				make_resp(&format!("You can't give someone {amount} elo")),
+				make_resp(&format!("You can't give someone negative elo.")),
 			)
 			.await?;
 
@@ -38,20 +36,20 @@ pub async fn give(ctx: &Context, command: CommandInteraction) -> Result<()> {
 		command
 			.create_response(
 				&ctx,
-				make_resp("You can't give someone more elo than you have"),
+				make_resp("You can't give someone more elo than you have."),
 			)
 			.await?;
 
 		return Ok(());
 	} else if target.bot {
 		command
-			.create_response(&ctx, make_resp("You can't give elo to a bot"))
+			.create_response(&ctx, make_resp("You can't give elo to a bot."))
 			.await?;
 
 		return Ok(());
 	} else if tid == uid {
 		command
-			.create_response(&ctx, make_resp("You can't give elo to a yourself"))
+			.create_response(&ctx, make_resp("You can't give elo to a yourself."))
 			.await?;
 
 		return Ok(());
@@ -64,7 +62,8 @@ pub async fn give(ctx: &Context, command: CommandInteraction) -> Result<()> {
 		.create_response(
 			&ctx,
 			make_resp(&format!(
-				"Successfully transferred {amount} elo to {target}."
+				"Successfully transferred {} elo to {target}.",
+				amount.floor()
 			)),
 		)
 		.await?;

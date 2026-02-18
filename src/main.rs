@@ -31,7 +31,9 @@ async fn main() {
 			CREATE TABLE IF NOT EXISTS users
 			(
 				id          VARCHAR PRIMARY KEY NOT NULL,
-				elo         INTEGER             NOT NULL
+				elo         FLOAT             NOT NULL,
+				deviation   FLOAT             NOT NULL,
+				volatility  FLOAT             NOT NULL
 			);
 		"#
 	)
@@ -78,7 +80,7 @@ impl EventHandler for Handler {
             "leaderboard" => commands::leaderboard(&ctx, command).await.unwrap(),
             "challenge" => {
 				if &command.channel.as_ref().unwrap().id != ctx.data.read().await.get::<Current>().unwrap() {
-					let err = format!("Nosedive can't listen for polls in this channel, try in <#{}> instead", command.channel.as_ref().unwrap().id);
+					let err = format!("Nosedive can't listen for polls in this channel, try in <#{}> instead.", ctx.data.read().await.get::<Current>().unwrap());
 
 					command
 						.create_response(
@@ -97,7 +99,7 @@ impl EventHandler for Handler {
 					command
 						.create_response(
 							&ctx,
-							make_resp("You need the Manage Channels permission to use /setchannel")
+							make_resp("You need the `Manage Channels` permission to use `/setchannel`.")
 						)
 						.await
 						.unwrap();

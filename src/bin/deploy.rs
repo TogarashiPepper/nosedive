@@ -15,61 +15,66 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let user1 = CreateCommandOption::new(
 		CommandOptionType::User,
 		"target",
-		"The user you wish to challenge",
+		"The user you wish to challenge.",
 	)
 	.required(true);
 
 	let challenge = CreateCommand::new("challenge")
-		.description(
-			"Pit yourself against someone. Winner gets social credit (and loser loses it).",
-		)
+		.description("Pit yourself against someone. Winner gets social credit.")
 		.set_options(vec![user1]);
 
 	let user = CreateCommandOption::new(
 		CommandOptionType::User,
 		"user",
-		"The user to fetch the elo of",
+		"The user whose elo you wish to see.",
 	);
 
 	let get_elo = CreateCommand::new("getelo")
-		.description("Fetches the elo of a given user")
+		.description("Fetches the elo of a given user.")
 		.set_options(vec![user]);
 
 	let leaderboard =
-		CreateCommand::new("leaderboard").description("Display the global leaderbaord");
+		CreateCommand::new("leaderboard").description("Display the global leaderboard.");
 
 	let set_channel = CreateCommand::new("setchannel")
-		.description("Sets which channel the bot will listen in (to stop users from farming in a channel people ignore).")
-		.add_option(CreateCommandOption::new(CommandOptionType::Channel, "channel", "The channel to listen in").required(true));
+		.description("Sets which channel the bot will listen in to stop users from farming in a channel people ignore.")
+		.add_option(CreateCommandOption::new(CommandOptionType::Channel, "channel", "The channel in which challenges will be allowed.").required(true));
 
 	let gift = CreateCommand::new("give")
-		.description("Give elo to another user")
+		.description("Give elo to another user.")
 		.add_option(
 			CreateCommandOption::new(
 				CommandOptionType::User,
 				"recipient",
-				"The user to give elo to",
+				"The user who is to recieve the elo.",
 			)
 			.required(true),
 		)
 		.add_option(CreateCommandOption::new(
 			CommandOptionType::Integer,
 			"amount",
-			"the amount to gift (defaults to 1/4th your elo)",
+			"The amount to gift (defaults to one-fourth elo contained).",
 		));
 
 	let coinflip = CreateCommand::new("coinflip")
 		.description(
-			"Flips a coin, if it's heads, 1.8x your wager, if its tails you lose it all.",
+			"Flips a coin, if it's heads, 1.2x your wager, if its tails you lose it all.",
 		)
 		.add_option(CreateCommandOption::new(
 			CommandOptionType::Integer,
 			"wager",
-			"the amount of elo you want to gamble (defaults to half your elo)",
+			"The amount of elo you want to gamble (defaults to half your elo).",
 		));
 
-	http.create_global_commands(&[challenge, get_elo, leaderboard, set_channel, gift, coinflip])
-		.await?;
+	http.create_global_commands(&[
+		challenge,
+		get_elo,
+		leaderboard,
+		set_channel,
+		gift,
+		coinflip,
+	])
+	.await?;
 
 	Ok(())
 }

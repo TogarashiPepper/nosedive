@@ -16,13 +16,13 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()>
 
 	if user == &target {
 		command
-			.create_response(&ctx, make_resp("You can't challenge yourself"))
+			.create_response(&ctx, make_resp("You can't challenge yourself."))
 			.await?;
 
 		return Ok(());
 	} else if target.bot {
 		command
-			.create_response(&ctx, make_resp("You can't challenge a bot"))
+			.create_response(&ctx, make_resp("You can't challenge a bot."))
 			.await?;
 
 		return Ok(());
@@ -38,9 +38,7 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()>
 	}
 
 	let poll = CreatePoll::new()
-		.question(
-			"Which user is more morally or comedically superior here? (poll ends in 1 minute)",
-		)
+		.question("Which user is more morally or comedically superior here? (60s)")
 		.answers(vec![
 			CreatePollAnswer::new().text(&user.name),
 			CreatePollAnswer::new().text(&target.name),
@@ -92,7 +90,7 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()>
 	let dbpool = data.get::<DatabasePool>().unwrap();
 
 	let res = if user_score == target_score {
-		format!("{user} and {target} tied. No elo has been lost or gained")
+		format!("{user} and {target} tied. No elo has been lost or gained.")
 	} else {
 		let loser: &User;
 		let winner: &User;
@@ -108,10 +106,11 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()>
 		let (w_delta, l_delta) =
 			db::finalize_match(dbpool, &winner.id.to_string(), &loser.id.to_string())
 				.await?;
-		let l_delta = l_delta.abs();
+		let w_delta = w_delta.abs().floor();
+		let l_delta = l_delta.abs().floor();
 
 		format!(
-			"{loser} has lost (-{l_delta} elo). {winner} is the morally or comedically superior individual (+{w_delta} elo)"
+			"{loser} has lost (-{l_delta} elo). {winner} is the morally or comedically superior individual (+{w_delta} elo)."
 		)
 	};
 

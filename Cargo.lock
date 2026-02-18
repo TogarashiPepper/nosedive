@@ -953,6 +953,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "instant-glicko-2"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4b9b3e6864ecd54dc89dc06d415e79cdd08f9cc4d82b332cc2de004fdac0c83"
+
+[[package]]
 name = "ipnet"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1146,6 +1152,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dotenvy",
+ "instant-glicko-2",
  "rand 0.10.0",
  "serenity",
  "sqlx",
