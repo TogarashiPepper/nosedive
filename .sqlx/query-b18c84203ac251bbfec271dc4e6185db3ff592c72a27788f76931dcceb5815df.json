@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT elo FROM users WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "name": "elo",
+        "ordinal": 0,
+        "type_info": "Float"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "b18c84203ac251bbfec271dc4e6185db3ff592c72a27788f76931dcceb5815df"
+}

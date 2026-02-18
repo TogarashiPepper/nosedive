@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT volatility FROM users WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "name": "volatility",
+        "ordinal": 0,
+        "type_info": "Float"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "be59d6a6c601149964a8b764b0f4ff2dfc90a0fa6a0057821d5094650c78d75f"
+}
