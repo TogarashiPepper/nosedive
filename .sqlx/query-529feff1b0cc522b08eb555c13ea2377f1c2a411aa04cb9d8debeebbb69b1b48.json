@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE users SET bytecoins = $1 WHERE id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "529feff1b0cc522b08eb555c13ea2377f1c2a411aa04cb9d8debeebbb69b1b48"
+}

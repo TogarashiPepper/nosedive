@@ -22,12 +22,18 @@
         "name": "volatility",
         "ordinal": 3,
         "type_info": "Float"
+      },
+      {
+        "name": "bytecoins",
+        "ordinal": 4,
+        "type_info": "Integer"
       }
     ],
     "parameters": {
       "Right": 0
     },
     "nullable": [
+      false,
       false,
       false,
       false,

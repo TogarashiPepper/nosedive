@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE coins SET total = $1 WHERE id = 1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "194c2fda7c508d0987968ead13553adf8b45bb28f69e9648d6a8ad3ce0e6cd00"
+}

@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT total FROM coins WHERE id = 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "total",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "dbfd104a20e0bab2ba632f5fca90d97895eeecaea234fdcfb268cd65e18f9a00"
+}

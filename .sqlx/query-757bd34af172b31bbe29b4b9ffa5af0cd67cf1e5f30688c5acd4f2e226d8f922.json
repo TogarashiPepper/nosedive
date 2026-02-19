@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n\t\t\tCREATE TABLE IF NOT EXISTS users\n\t\t\t(\n\t\t\t\tid          VARCHAR PRIMARY KEY NOT NULL,\n\t\t\t\telo         FLOAT             NOT NULL,\n\t\t\t\tdeviation   FLOAT             NOT NULL,\n\t\t\t\tvolatility  FLOAT             NOT NULL,\n\t\t\t\tbytecoins   INTEGER           NOT NULL\n\t\t\t);\n\n\t\t\tCREATE TABLE IF NOT EXISTS coins\n\t\t\t(\n\t\t\t\tid          VARCHAR PRIMARY KEY NOT NULL,\n\t\t\t\tname        VARCHAR UNIQUE      NOT NULL,\n\t\t\t\tprice       INTEGER             NOT NULL,\n\t\t\t\ttotal       INTEGER             NOT NULL\n\t\t\t);\n\n\t\t\tINSERT INTO coins (id, name, price, total) VALUES (1, 'ByteCoin', 100, 2500) ON CONFLICT(name) DO NOTHING;\n\t\t",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": []
+  },
+  "hash": "757bd34af172b31bbe29b4b9ffa5af0cd67cf1e5f30688c5acd4f2e226d8f922"
+}
