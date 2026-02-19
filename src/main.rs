@@ -33,8 +33,19 @@ async fn main() {
 				id          VARCHAR PRIMARY KEY NOT NULL,
 				elo         FLOAT             NOT NULL,
 				deviation   FLOAT             NOT NULL,
-				volatility  FLOAT             NOT NULL
+				volatility  FLOAT             NOT NULL,
+				bytecoins   INTEGER           NOT NULL
 			);
+
+			CREATE TABLE IF NOT EXISTS coins
+			(
+				id          VARCHAR PRIMARY KEY NOT NULL,
+				name        VARCHAR UNIQUE      NOT NULL,
+				price       INTEGER             NOT NULL,
+				total       INTEGER             NOT NULL
+			);
+
+			INSERT INTO coins (id, name, price, total) VALUES (1, 'ByteCoin', 100, 2500) ON CONFLICT(name) DO NOTHING;
 		"#
 	)
 	.execute(&dbpool)
@@ -109,6 +120,7 @@ impl EventHandler for Handler {
 				}
 			},
 			"give" => commands::give(&ctx, command).await.unwrap(),
+			"bytecoin" => commands::bytecoin(&ctx, command).await.unwrap(),
 
 			// This really shouldn't ever happen
             _ => command

@@ -56,12 +56,56 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 			"The amount to gift (defaults to one-fourth elo contained).",
 		));
 
+	let bytecoin = CreateCommand::new("bytecoin")
+		.description("Interface to purchase and sell bytecoins.")
+		.add_option(CreateCommandOption::new(
+			CommandOptionType::SubCommand,
+			"price",
+			"Show the price of one bytecoin.",
+		))
+		.add_option(
+			CreateCommandOption::new(
+				CommandOptionType::SubCommand,
+				"buy",
+				"Buy bytecoins!",
+			)
+			.add_sub_option(
+				CreateCommandOption::new(
+					CommandOptionType::Integer,
+					"number",
+					"The number of bitcoins to purchase.",
+				)
+				.required(true),
+			),
+		)
+		.add_option(CreateCommandOption::new(
+			CommandOptionType::SubCommand,
+			"held",
+			"Number of bytecoins in your account!",
+		))
+		.add_option(
+			CreateCommandOption::new(
+				CommandOptionType::SubCommand,
+				"sell",
+				"Sell bytecoins!",
+			)
+			.add_sub_option(
+				CreateCommandOption::new(
+					CommandOptionType::Integer,
+					"number",
+					"The number of bitcoins to sell.",
+				)
+				.required(true),
+			),
+		);
+
 	http.create_global_commands(&[
 		challenge,
 		get_elo,
 		leaderboard,
 		set_channel,
 		gift,
+		bytecoin,
 	])
 	.await?;
 

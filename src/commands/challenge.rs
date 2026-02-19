@@ -33,8 +33,8 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()>
 		let data = ctx.data.read().await;
 		let dbpool = data.get::<DatabasePool>().unwrap();
 
-		db::create_if_user(dbpool, &user.id.to_string()).await?;
-		db::create_if_user(dbpool, &target.id.to_string()).await?;
+		db::create_user(dbpool, &user.id.to_string()).await?;
+		db::create_user(dbpool, &target.id.to_string()).await?;
 	}
 
 	let poll = CreatePoll::new()

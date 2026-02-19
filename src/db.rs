@@ -4,20 +4,11 @@ use instant_glicko_2::engine::{MatchResult, RatingEngine};
 use instant_glicko_2::{Parameters, PublicRating};
 use sqlx::SqlitePool;
 
-pub async fn user_exists(pool: &SqlitePool, id: &str) -> Result<bool, sqlx::Error> {
-	let exists: i64 =
-		sqlx::query_scalar!("SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", id)
-			.fetch_one(pool)
-			.await?;
-
-	Ok(exists == 1)
-}
-
 pub async fn create_user(pool: &SqlitePool, id: &str) -> Result<(), sqlx::Error> {
 	sqlx::query!(
 		r#"
 			INSERT INTO users
-			VALUES ($1, 1500.0, 350.0, 0.06)
+			VALUES ($1, 1500.0, 350.0, 0.06, 0) ON CONFLICT(id) DO NOTHING;
 		"#,
 		id,
 	)
@@ -27,16 +18,8 @@ pub async fn create_user(pool: &SqlitePool, id: &str) -> Result<(), sqlx::Error>
 	Ok(())
 }
 
-pub async fn create_if_user(pool: &SqlitePool, id: &str) -> Result<(), sqlx::Error> {
-	if !user_exists(pool, id).await? {
-		create_user(pool, id).await?;
-	}
-
-	Ok(())
-}
-
 pub async fn get_elo(pool: &SqlitePool, id: &str) -> Result<f64, sqlx::Error> {
-	create_if_user(pool, id).await?;
+	create_user(pool, id).await?;
 
 	let elo: f64 = sqlx::query_scalar!("SELECT elo FROM users WHERE id = $1", id)
 		.fetch_one(pool)
@@ -46,7 +29,7 @@ pub async fn get_elo(pool: &SqlitePool, id: &str) -> Result<f64, sqlx::Error> {
 }
 
 pub async fn get_deviation(pool: &SqlitePool, id: &str) -> Result<f64, sqlx::Error> {
-	create_if_user(pool, id).await?;
+	create_user(pool, id).await?;
 
 	let elo: f64 = sqlx::query_scalar!("SELECT deviation FROM users WHERE id = $1", id)
 		.fetch_one(pool)
@@ -56,13 +39,43 @@ pub async fn get_deviation(pool: &SqlitePool, id: &str) -> Result<f64, sqlx::Err
 }
 
 pub async fn get_volatility(pool: &SqlitePool, id: &str) -> Result<f64, sqlx::Error> {
-	create_if_user(pool, id).await?;
+	create_user(pool, id).await?;
 
 	let elo: f64 = sqlx::query_scalar!("SELECT volatility FROM users WHERE id = $1", id)
 		.fetch_one(pool)
 		.await?;
 
 	Ok(elo)
+}
+
+pub async fn get_user_bytecoins(pool: &SqlitePool, id: &str) -> Result<i64, sqlx::Error> {
+	create_user(pool, id).await?;
+
+	let number: i64 =
+		sqlx::query_scalar!("SELECT bytecoins FROM users WHERE id = $1", id)
+			.fetch_one(pool)
+			.await?;
+
+	Ok(number)
+}
+
+pub async fn get_bytecoin_total(pool: &SqlitePool) -> Result<i64, sqlx::Error> {
+	let price = sqlx::query_scalar!("SELECT total FROM coins WHERE id = 1")
+		.fetch_one(pool)
+		.await?;
+
+	Ok(price)
+}
+
+pub async fn set_bytecoin_total(
+	pool: &SqlitePool,
+	total: i64,
+) -> Result<(), sqlx::Error> {
+	sqlx::query_scalar!("UPDATE coins SET total = $1 WHERE id = 1", total)
+		.execute(pool)
+		.await?;
+
+	Ok(())
 }
 
 pub async fn set_elo(pool: &SqlitePool, id: &str, elo: f64) -> Result<(), sqlx::Error> {
@@ -101,6 +114,18 @@ pub async fn set_volatility(
 	)
 	.execute(pool)
 	.await?;
+
+	Ok(())
+}
+
+pub async fn set_user_bytecoins(
+	pool: &SqlitePool,
+	id: &str,
+	number: i64,
+) -> Result<(), sqlx::Error> {
+	sqlx::query_scalar!("UPDATE users SET bytecoins = $1 WHERE id = $2", number, id)
+		.execute(pool)
+		.await?;
 
 	Ok(())
 }
