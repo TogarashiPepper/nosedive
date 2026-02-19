@@ -152,7 +152,7 @@ pub async fn finalize_match(
 }
 
 pub async fn rankings(pool: &SqlitePool) -> Result<Vec<(String, f64)>, sqlx::Error> {
-	let res = sqlx::query!(r#"SELECT * FROM users WHERE elo != 0 ORDER BY elo DESC"#)
+	let res = sqlx::query!(r#"SELECT * FROM users WHERE ABS(elo) > 1 ORDER BY elo DESC"#)
 		.fetch_all(pool)
 		.await?;
 

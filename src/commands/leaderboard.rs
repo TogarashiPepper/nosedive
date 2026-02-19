@@ -15,7 +15,7 @@ pub async fn leaderboard(ctx: &Context, command: CommandInteraction) -> Result<(
 
 	for (idx, rank) in rankings.into_iter().enumerate() {
 		let user_id = UserId::new(rank.0.parse::<u64>()?);
-		let _ = writeln!(buf, "{}. <@{}>: {} elo", idx + 1, user_id, rank.1.ceil());
+		let _ = writeln!(buf, "{}. <@{}>: {} elo", idx + 1, user_id, rank.1.floor());
 	}
 
 	command.create_response(&ctx, make_resp(&buf)).await?;
