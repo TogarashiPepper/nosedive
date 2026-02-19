@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT * FROM users WHERE elo != 0 ORDER BY elo DESC",
+  "query": "SELECT * FROM users WHERE ABS(elo) > 1 ORDER BY elo DESC",
   "describe": {
     "columns": [
       {
@@ -34,5 +34,5 @@
       false
     ]
   },
-  "hash": "6bd3d14299133589b258852b36a02f4c0d68e5226b828cf824c5097dd0e7207f"
+  "hash": "604d4d5c2763039f91297cb061412c2b2d831304e9361b360e1cb8dc8e525860"
 }
