@@ -15,14 +15,14 @@ pub async fn leaderboard(ctx: &Context, command: CommandInteraction) -> Result<(
 
 	for (idx, rank) in rankings.into_iter().enumerate() {
 		let user_id = UserId::new(rank.0.parse::<u64>()?);
-		if rank.2 != 0 {
+		if rank.2 != 0.0 {
 			writeln!(
 				buf,
 				"{}. <@{}>: {} elo ({} with bytecoins)",
 				idx + 1,
 				user_id,
 				rank.1.floor(),
-				rank.1.floor() as i64 + rank.2
+				(rank.1 + rank.2).floor() as i64
 			)?;
 		} else {
 			writeln!(buf, "{}. <@{}>: {} elo", idx + 1, user_id, rank.1.floor())?;

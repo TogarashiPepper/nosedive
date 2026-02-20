@@ -176,20 +176,22 @@ pub async fn finalize_match(
 	))
 }
 
-pub async fn rankings(pool: &SqlitePool) -> Result<Vec<(String, f64, i64)>, sqlx::Error> {
-	// (100 + 25 * (2500 - total - 1)) * number - 25 * number * (number - 1) / 2
+pub async fn rankings(pool: &SqlitePool) -> Result<Vec<(String, f64, f64)>, sqlx::Error> {
+	// Expr in SELECT is equiv to (100 + 25 * (2500 - total - 1)) * number - 25 * number * (number - 1) / 2
 	let res = sqlx::query!(
 		r#"
 			WITH coin_total AS (
 				SELECT total FROM coins WHERE id = 1
 			)
-			SELECT
-				id,
-				elo,
-				25 * bytecoins * (5007 - 2 * total - bytecoins) / 2 AS coin_value
-			FROM users, coin_total
-			WHERE ABS(elo) > 1
-			ORDER BY elo DESC
+			SELECT * FROM (
+				SELECT
+					id,
+					elo,
+					25 * bytecoins * (5007 - 2 * total - bytecoins) / 2.0 AS coin_value
+				FROM users, coin_total
+				WHERE ABS(elo) > 1
+			) sub
+			ORDER BY elo + coin_value DESC
 		"#
 	)
 	.fetch_all(pool)
