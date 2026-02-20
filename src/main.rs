@@ -119,7 +119,6 @@ impl EventHandler for Handler {
 					commands::set_channel(&ctx, command).await.unwrap();
 				}
 			},
-			"give" => commands::give(&ctx, command).await.unwrap(),
 			"bytecoin" => commands::bytecoin(&ctx, command).await.unwrap(),
 
 			// This really shouldn't ever happen

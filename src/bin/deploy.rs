@@ -40,22 +40,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.description("Sets which channel the bot will listen in to stop users from farming in a channel people ignore.")
 		.add_option(CreateCommandOption::new(CommandOptionType::Channel, "channel", "The channel in which challenges will be allowed.").required(true));
 
-	let gift = CreateCommand::new("give")
-		.description("Give elo to another user.")
-		.add_option(
-			CreateCommandOption::new(
-				CommandOptionType::User,
-				"recipient",
-				"The user who is to recieve the elo.",
-			)
-			.required(true),
-		)
-		.add_option(CreateCommandOption::new(
-			CommandOptionType::Integer,
-			"amount",
-			"The amount to gift (defaults to one-fourth elo contained).",
-		));
-
 	let bytecoin = CreateCommand::new("bytecoin")
 		.description("Interface to purchase and sell bytecoins.")
 		.add_option(CreateCommandOption::new(
@@ -104,7 +88,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		get_elo,
 		leaderboard,
 		set_channel,
-		gift,
 		bytecoin,
 	])
 	.await?;
