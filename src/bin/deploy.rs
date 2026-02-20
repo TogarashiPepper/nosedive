@@ -73,11 +73,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 				.required(true),
 			),
 		)
-		.add_option(CreateCommandOption::new(
-			CommandOptionType::SubCommand,
-			"held",
-			"Number of bytecoins in your account!",
-		))
+		.add_option(
+			CreateCommandOption::new(
+				CommandOptionType::SubCommand,
+				"held",
+				"Number of bytecoins in your account!",
+			)
+			.add_sub_option(CreateCommandOption::new(
+				CommandOptionType::User,
+				"target",
+				"The user whose bitcoins you wish to view.",
+			)),
+		)
 		.add_option(
 			CreateCommandOption::new(
 				CommandOptionType::SubCommand,

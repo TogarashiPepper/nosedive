@@ -92,15 +92,23 @@ pub async fn bytecoin(ctx: &Context, command: CommandInteraction) -> Result<()> 
 				.await?;
 		}
 		"held" => {
-			let uid = command.user.id.to_string();
-			let number = db::get_user_bytecoins(pool, &uid).await?;
+			let user_id =
+				if let CommandDataOptionValue::SubCommand(opts) = &subcommand.value {
+					opts.first()
+						.map(|o| o.value.as_user_id().unwrap())
+						.unwrap_or(command.user.id)
+				} else {
+					unreachable!()
+				};
+			let number = db::get_user_bytecoins(pool, &user_id.to_string()).await?;
 
-			command
-				.create_response(
-					&ctx,
-					make_resp(&format!("You have {number} bytecoins!",)),
-				)
-				.await?;
+			let res = if user_id == command.user.id {
+				format!("You have {number} bytecoins!")
+			} else {
+				format!("<@{user_id}> has {number} bytecoins!")
+			};
+
+			command.create_response(&ctx, make_resp(&res)).await?;
 		}
 		"sell" => {
 			let total = db::get_bytecoin_total(pool).await?;
