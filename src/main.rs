@@ -2,8 +2,10 @@ mod commands;
 mod db;
 mod utils;
 
+use std::collections::HashMap;
 use std::env;
 use std::str::FromStr;
+use std::time::SystemTime;
 
 use serenity::all::{
 	ChannelId, Context, EventHandler, GatewayIntents, Interaction, Permissions,
@@ -61,6 +63,10 @@ async fn main() {
 		let mut data = client.data.write().await;
 		data.insert::<DatabasePool>(dbpool);
 		data.insert::<Current>(ChannelId::new(806571996485386240));
+		data.insert::<CooldownMap>(CooldownMap {
+			timeout: 180,
+			data: HashMap::new(),
+		});
 	}
 
 	client.start().await.unwrap();
@@ -70,6 +76,10 @@ struct Handler;
 
 pub struct Current;
 pub struct DatabasePool;
+pub struct CooldownMap {
+	timeout: u64,
+	data: HashMap<String, u64>,
+}
 
 impl TypeMapKey for DatabasePool {
 	type Value = SqlitePool;
@@ -77,6 +87,10 @@ impl TypeMapKey for DatabasePool {
 
 impl TypeMapKey for Current {
 	type Value = ChannelId;
+}
+
+impl TypeMapKey for CooldownMap {
+	type Value = CooldownMap;
 }
 
 #[async_trait]
@@ -109,10 +123,32 @@ impl EventHandler for Handler {
 						)
 						.await
 						.unwrap();
+
+					return;
 				}
-				else {
-					commands::challenge(&ctx, command).await.unwrap();
+
+				let current_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
+
+				let timeout = ctx.data.read().await.get::<CooldownMap>().unwrap().timeout;
+				let mut cooldowns = ctx.data.read().await.get::<CooldownMap>().unwrap().data.clone();
+				let user_cooldown = cooldowns.get(&command.user.id.to_string());
+
+				if let Some(timestamp) = user_cooldown {
+					if current_time - timestamp < timeout {
+						command
+							.create_response(
+								&ctx,
+								make_resp(&format!("You are on cooldown ({}s).", timeout - (current_time - timestamp)))
+							)
+							.await
+							.unwrap();
+
+						return;
+					}
 				}
+				cooldowns.insert(command.user.id.to_string(), current_time);
+				let _ = &ctx.data.write().await.insert::<CooldownMap>(CooldownMap { timeout: timeout, data: cooldowns });
+				commands::challenge(&ctx, command).await.unwrap();
 			},
 			"setchannel" => {
 				if !command.member.as_ref().unwrap().permissions.unwrap().contains(Permissions::MANAGE_CHANNELS) {
@@ -126,6 +162,20 @@ impl EventHandler for Handler {
 				}
 				else {
 					commands::set_channel(&ctx, command).await.unwrap();
+				}
+			},
+			"settimeout" => {
+				if !command.member.as_ref().unwrap().permissions.unwrap().contains(Permissions::MANAGE_CHANNELS) {
+					command
+						.create_response(
+							&ctx,
+							make_resp("You need the `Manage Channels` permission to use `/settimeout`.")
+						)
+						.await
+						.unwrap();
+				}
+				else {
+					commands::set_timeout(&ctx, command).await.unwrap();
 				}
 			},
 			"bytecoin" => commands::bytecoin(&ctx, command).await.unwrap(),

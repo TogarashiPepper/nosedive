@@ -40,6 +40,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.description("Sets which channel the bot will listen in to stop users from farming in a channel people ignore.")
 		.add_option(CreateCommandOption::new(CommandOptionType::Channel, "channel", "The channel in which challenges will be allowed.").required(true));
 
+	let set_timeout = CreateCommand::new("settimeout")
+		.description("Sets the timeout for /challenge command.")
+		.add_option(
+			CreateCommandOption::new(
+				CommandOptionType::Integer,
+				"timeout",
+				"The number of seconds the users have to wait before running /challenge.",
+			)
+			.required(true),
+		);
+
 	let bytecoin = CreateCommand::new("bytecoin")
 		.description("Interface to purchase and sell bytecoins.")
 		.add_option(CreateCommandOption::new(
@@ -88,6 +99,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		get_elo,
 		leaderboard,
 		set_channel,
+		set_timeout,
 		bytecoin,
 	])
 	.await?;
