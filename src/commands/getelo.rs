@@ -16,9 +16,18 @@ pub async fn get_elo(ctx: &Context, command: CommandInteraction) -> Result<()> {
 		None => &command.user,
 	};
 
+	if user.bot {
+		command
+			.create_response(&ctx, make_resp("Bots can't have elo, silly."))
+			.await?;
+
+		return Ok(());
+	}
+
 	let elo = crate::db::get_elo(dbpool, &user.id.to_string())
 		.await?
 		.floor();
+
 	command
 		.create_response(&ctx, make_resp(&format!("User {} has {elo} elo.", user)))
 		.await?;
