@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\n\t\t\tWITH coin_total AS (\n\t\t\t\tSELECT total FROM coins WHERE id = 1\n\t\t\t)\n\t\t\tSELECT\n\t\t\t\telo,\n\t\t\t\t25 * bytecoins * (5007 - 2 * total - bytecoins) / 2.0 AS \"coin_value: f64\"\n\t\t\tFROM users, coin_total\n\t\t\tWHERE id = $1 \n\t\t",
+  "describe": {
+    "columns": [
+      {
+        "name": "elo",
+        "ordinal": 0,
+        "type_info": "Float"
+      },
+      {
+        "name": "coin_value: f64",
+        "ordinal": 1,
+        "type_info": "Null"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "87055c01726af11abe2250035f2004b75c0d602c9ec5b3e5ed176a43e1171845"
+}
