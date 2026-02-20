@@ -26,6 +26,20 @@ pub async fn challenge(ctx: &Context, command: CommandInteraction) -> Result<()>
 			.await?;
 
 		return Ok(());
+	} else if ctx
+		.http
+		.get_member(command.guild_id.unwrap(), target.id)
+		.await
+		.is_err()
+	{
+		command
+			.create_response(
+				&ctx,
+				make_resp("You can't challenge a user who is not a part of this guild."),
+			)
+			.await?;
+
+		return Ok(());
 	}
 
 	// Create a scope to acquire and drop the lock in

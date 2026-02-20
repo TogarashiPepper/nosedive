@@ -86,6 +86,15 @@ impl EventHandler for Handler {
 			return;
 		};
 
+		if command.guild_id.is_none() {
+			command
+				.create_response(&ctx, make_resp("You can't use Nosedive in DMs."))
+				.await
+				.unwrap();
+
+			return;
+		}
+
 		match command.data.name.as_str() {
             "getelo" => commands::get_elo(&ctx, command).await.unwrap(),
             "leaderboard" => commands::leaderboard(&ctx, command).await.unwrap(),
