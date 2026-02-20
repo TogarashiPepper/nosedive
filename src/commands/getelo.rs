@@ -24,13 +24,21 @@ pub async fn get_elo(ctx: &Context, command: CommandInteraction) -> Result<()> {
 		return Ok(());
 	}
 
-	let elo = crate::db::get_elo(dbpool, &user.id.to_string())
-		.await?
-		.floor();
+	let (elo, bc_worth) =
+		crate::db::get_elo_with_bc(dbpool, &user.id.to_string()).await?;
 
-	command
-		.create_response(&ctx, make_resp(&format!("User {} has {elo} elo.", user)))
-		.await?;
+	let res = if bc_worth != 0.0 {
+		format!(
+			"User {} has {} elo ({} with bytecoins).",
+			user,
+			elo.floor(),
+			(elo + bc_worth).floor()
+		)
+	} else {
+		format!("User {} has {} elo.", user, elo.floor())
+	};
+
+	command.create_response(&ctx, make_resp(&res)).await?;
 
 	Ok(())
 }

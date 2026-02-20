@@ -28,6 +28,28 @@ pub async fn get_elo(pool: &SqlitePool, id: &str) -> Result<f64, sqlx::Error> {
 	Ok(elo)
 }
 
+pub async fn get_elo_with_bc(pool: &SqlitePool, id: &str) -> Result<(f64, f64), sqlx::Error> {
+	create_user(pool, id).await?;
+
+	let elo = sqlx::query!(
+		r#"
+			WITH coin_total AS (
+				SELECT total FROM coins WHERE id = 1
+			)
+			SELECT
+				elo,
+				25 * bytecoins * (5007 - 2 * total - bytecoins) / 2.0 AS "coin_value: f64"
+			FROM users, coin_total
+			WHERE id = $1 
+		"#,
+		id
+	)
+	.fetch_one(pool)
+	.await?;
+
+	Ok((elo.elo, elo.coin_value.unwrap()))
+}
+
 pub async fn get_deviation(pool: &SqlitePool, id: &str) -> Result<f64, sqlx::Error> {
 	create_user(pool, id).await?;
 
