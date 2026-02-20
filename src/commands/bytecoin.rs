@@ -31,6 +31,7 @@ pub async fn bytecoin(ctx: &Context, command: CommandInteraction) -> Result<()> 
 		"buy" => {
 			let total = db::get_bytecoin_total(pool).await?;
 			let uid = command.user.id.to_string();
+			let elo = db::get_elo(pool, &uid).await?;
 			let user_bytecoins = db::get_user_bytecoins(pool, &uid).await?;
 
 			// Required option
@@ -39,7 +40,17 @@ pub async fn bytecoin(ctx: &Context, command: CommandInteraction) -> Result<()> 
 			};
 
 			// Required option
-			let number = options.first().map(|x| x.value.as_i64().unwrap()).unwrap();
+			let number = options.first().map(|x| x.value.as_i64().unwrap());
+
+			let cost = |n: i64| (100 + 25 * (2500 - total)) * n + 25 * n * (n - 1) / 2;
+
+			let number = match number {
+				Some(num) => num,
+				None => (0..=2000)
+					.take_while(|&n| cost(n) <= elo as i64)
+					.last()
+					.unwrap(),
+			};
 
 			if number <= 0 {
 				command
@@ -56,10 +67,7 @@ pub async fn bytecoin(ctx: &Context, command: CommandInteraction) -> Result<()> 
 			// TOTAL_COINS: 2500
 			// FORMULA: (BASE_PRICE + 25(TOTAL - CURRENT))n + 25n(n-1)/2
 
-			let cost =
-				(100 + 25 * (2500 - total)) * number + 25 * number * (number - 1) / 2;
-
-			let elo = db::get_elo(pool, &uid).await?;
+			let cost = cost(number);
 
 			if cost > elo.floor() as i64 {
 				command
@@ -121,7 +129,10 @@ pub async fn bytecoin(ctx: &Context, command: CommandInteraction) -> Result<()> 
 			};
 
 			// Required option
-			let number = options.first().map(|x| x.value.as_i64().unwrap()).unwrap();
+			let number = options
+				.first()
+				.map(|x| x.value.as_i64().unwrap())
+				.unwrap_or(user_bytecoins);
 
 			if number <= 0 {
 				command

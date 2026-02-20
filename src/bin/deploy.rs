@@ -68,9 +68,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 				CreateCommandOption::new(
 					CommandOptionType::Integer,
 					"number",
-					"The number of bitcoins to purchase.",
+					"The number of bitcoins to purchase. (defaults to max)",
 				)
-				.required(true),
 			),
 		)
 		.add_option(
@@ -91,14 +90,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 				"sell",
 				"Sell bytecoins!",
 			)
-			.add_sub_option(
-				CreateCommandOption::new(
-					CommandOptionType::Integer,
-					"number",
-					"The number of bitcoins to sell.",
-				)
-				.required(true),
-			),
+			.add_sub_option(CreateCommandOption::new(
+				CommandOptionType::Integer,
+				"number",
+				"The number of bitcoins to sell. (defaults to max)",
+			)),
 		);
 
 	http.create_global_commands(&[
