@@ -93,6 +93,8 @@ impl TypeMapKey for CooldownMap {
 	type Value = CooldownMap;
 }
 
+const CANT_HANDLE: &str = "That command can't be handled by this version of nosedive. Please try updating or contacting the admin of this instance.";
+
 #[async_trait]
 impl EventHandler for Handler {
 	async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
@@ -110,84 +112,115 @@ impl EventHandler for Handler {
 		}
 
 		match command.data.name.as_str() {
-            "getelo" => commands::get_elo(&ctx, command).await.unwrap(),
-            "leaderboard" => commands::leaderboard(&ctx, command).await.unwrap(),
-            "challenge" => {
-				if &command.channel.as_ref().unwrap().id != ctx.data.read().await.get::<Current>().unwrap() {
-					let err = format!("Nosedive can't listen for polls in this channel, try in <#{}> instead.", ctx.data.read().await.get::<Current>().unwrap());
+			"getelo" => commands::get_elo(&ctx, command).await.unwrap(),
+			"leaderboard" => commands::leaderboard(&ctx, command).await.unwrap(),
+			"challenge" => {
+				if &command.channel.as_ref().unwrap().id
+					!= ctx.data.read().await.get::<Current>().unwrap()
+				{
+					let err = format!(
+						"Nosedive can't listen for polls in this channel, try in <#{}> instead.",
+						ctx.data.read().await.get::<Current>().unwrap()
+					);
 
 					command
-						.create_response(
-							&ctx,
-							make_resp(&err)
-						)
+						.create_response(&ctx, make_resp(&err))
 						.await
 						.unwrap();
 
 					return;
 				}
 
-				let current_time = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
+				let current_time = SystemTime::now()
+					.duration_since(SystemTime::UNIX_EPOCH)
+					.unwrap()
+					.as_secs();
 
 				let timeout = ctx.data.read().await.get::<CooldownMap>().unwrap().timeout;
-				let mut cooldowns = ctx.data.read().await.get::<CooldownMap>().unwrap().data.clone();
+				let mut cooldowns = ctx
+					.data
+					.read()
+					.await
+					.get::<CooldownMap>()
+					.unwrap()
+					.data
+					.clone();
 				let user_cooldown = cooldowns.get(&command.user.id.to_string());
 
-				if let Some(timestamp) = user_cooldown {
-					if current_time - timestamp < timeout {
-						command
-							.create_response(
-								&ctx,
-								make_resp(&format!("You are on cooldown ({}s).", timeout - (current_time - timestamp)))
-							)
-							.await
-							.unwrap();
+				if let Some(timestamp) = user_cooldown
+					&& current_time - timestamp < timeout
+				{
+					command
+						.create_response(
+							&ctx,
+							make_resp(&format!(
+								"You are on cooldown ({}s).",
+								timeout - (current_time - timestamp)
+							)),
+						)
+						.await
+						.unwrap();
 
-						return;
-					}
+					return;
 				}
 				cooldowns.insert(command.user.id.to_string(), current_time);
-				let _ = &ctx.data.write().await.insert::<CooldownMap>(CooldownMap { timeout: timeout, data: cooldowns });
+				let _ = &ctx.data.write().await.insert::<CooldownMap>(CooldownMap {
+					timeout,
+					data: cooldowns,
+				});
 				commands::challenge(&ctx, command).await.unwrap();
-			},
+			}
 			"setchannel" => {
-				if !command.member.as_ref().unwrap().permissions.unwrap().contains(Permissions::MANAGE_CHANNELS) {
+				if !command
+					.member
+					.as_ref()
+					.unwrap()
+					.permissions
+					.unwrap()
+					.contains(Permissions::MANAGE_CHANNELS)
+				{
 					command
 						.create_response(
 							&ctx,
-							make_resp("You need the `Manage Channels` permission to use `/setchannel`.")
+							make_resp(
+								"You need the `Manage Channels` permission to use `/setchannel`.",
+							),
 						)
 						.await
 						.unwrap();
-				}
-				else {
+				} else {
 					commands::set_channel(&ctx, command).await.unwrap();
 				}
-			},
+			}
 			"settimeout" => {
-				if !command.member.as_ref().unwrap().permissions.unwrap().contains(Permissions::MANAGE_CHANNELS) {
+				if !command
+					.member
+					.as_ref()
+					.unwrap()
+					.permissions
+					.unwrap()
+					.contains(Permissions::MANAGE_CHANNELS)
+				{
 					command
 						.create_response(
 							&ctx,
-							make_resp("You need the `Manage Channels` permission to use `/settimeout`.")
+							make_resp(
+								"You need the `Manage Channels` permission to use `/settimeout`.",
+							),
 						)
 						.await
 						.unwrap();
-				}
-				else {
+				} else {
 					commands::set_timeout(&ctx, command).await.unwrap();
 				}
-			},
+			}
 			"bytecoin" => commands::bytecoin(&ctx, command).await.unwrap(),
 
 			// This really shouldn't ever happen
-            _ => command
-                .create_response(
-                    &ctx,
-					make_resp("That command can't be handled by this version of nosedive. Please try updating or contacting the admin of this instance.")
-                )
-                .await
-                .unwrap(),
-        }
+			_ => command
+				.create_response(&ctx, make_resp(CANT_HANDLE))
+				.await
+				.unwrap(),
+		}
 	}
 }

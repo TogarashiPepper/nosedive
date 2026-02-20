@@ -9,7 +9,7 @@ pub async fn bytecoin(ctx: &Context, command: CommandInteraction) -> Result<()> 
 	let pool = pool.get::<DatabasePool>().unwrap();
 
 	// Subcommand will always be present
-	let Some(subcommand) = command.data.options.get(0) else {
+	let Some(subcommand) = command.data.options.first() else {
 		unreachable!()
 	};
 
@@ -39,13 +39,13 @@ pub async fn bytecoin(ctx: &Context, command: CommandInteraction) -> Result<()> 
 			};
 
 			// Required option
-			let number = options.get(0).map(|x| x.value.as_i64().unwrap()).unwrap();
+			let number = options.first().map(|x| x.value.as_i64().unwrap()).unwrap();
 
 			if number <= 0 {
 				command
 					.create_response(
 						&ctx,
-						make_resp(&format!("You must buy positive number of bytecoins.")),
+						make_resp("You must buy positive number of bytecoins."),
 					)
 					.await?;
 
@@ -113,15 +113,13 @@ pub async fn bytecoin(ctx: &Context, command: CommandInteraction) -> Result<()> 
 			};
 
 			// Required option
-			let number = options.get(0).map(|x| x.value.as_i64().unwrap()).unwrap();
+			let number = options.first().map(|x| x.value.as_i64().unwrap()).unwrap();
 
 			if number <= 0 {
 				command
 					.create_response(
 						&ctx,
-						make_resp(&format!(
-							"You must sell positive number of bytecoins."
-						)),
+						make_resp("You must sell positive number of bytecoins."),
 					)
 					.await?;
 

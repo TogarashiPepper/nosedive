@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT * FROM users WHERE ABS(elo) > 1 ORDER BY elo DESC",
+  "query": "\n\t\t\tWITH coin_total AS (\n\t\t\t\tSELECT total FROM coins WHERE id = 1\n\t\t\t)\n\t\t\tSELECT\n\t\t\t\tid,\n\t\t\t\telo,\n\t\t\t\t25 * bytecoins * (5007 - 2 * total - bytecoins) / 2 AS coin_value\n\t\t\tFROM users, coin_total\n\t\t\tWHERE ABS(elo) > 1\n\t\t\tORDER BY elo DESC\n\t\t",
   "describe": {
     "columns": [
       {
@@ -14,18 +14,8 @@
         "type_info": "Float"
       },
       {
-        "name": "deviation",
+        "name": "coin_value",
         "ordinal": 2,
-        "type_info": "Float"
-      },
-      {
-        "name": "volatility",
-        "ordinal": 3,
-        "type_info": "Float"
-      },
-      {
-        "name": "bytecoins",
-        "ordinal": 4,
         "type_info": "Integer"
       }
     ],
@@ -35,10 +25,8 @@
     "nullable": [
       false,
       false,
-      false,
-      false,
       false
     ]
   },
-  "hash": "604d4d5c2763039f91297cb061412c2b2d831304e9361b360e1cb8dc8e525860"
+  "hash": "8dbea1d6007e361583770e0f930112ec508b5c8007c19b3d077d3909b0419853"
 }
