@@ -154,8 +154,8 @@ impl EventHandler for Handler {
 						.create_response(
 							&ctx,
 							make_resp(&format!(
-								"You are on cooldown ({}s).",
-								timeout - (current_time - timestamp)
+								"You are on cooldown (next usage <t:{}:R>).",
+								timestamp + timeout - (current_time - timestamp)
 							)),
 						)
 						.await
